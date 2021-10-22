@@ -1,0 +1,248 @@
+DROP DATABASE IF EXISTS BibliOnline;
+CREATE DATABASE BibliOnline;
+USE BibliOnline;
+
+CREATE TABLE Autore(
+	Codice INT AUTO_INCREMENT,
+    Nome VARCHAR(70),
+    Cognome VARCHAR(70),
+    AnnoNascita INT,
+    Biografia VARCHAR(300),
+    PRIMARY KEY(Codice)
+);
+
+CREATE TABLE Account(
+	NomeUtente VARCHAR(20),
+    Password VARCHAR(20),
+	DataCreazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(NomeUtente)
+);
+
+CREATE TABLE Libro(
+	CodiceISBN BIGINT,
+    Titolo VARCHAR(80) NOT NULL,
+    CasaEditrice VARCHAR(80) NOT NULL,
+    Genere VARCHAR(70),
+    AnnoPubblicazione INT,
+    Lingua VARCHAR(20),
+    NumeroPagine INT NOT NULL,
+	PRIMARY KEY(CodiceISBN)
+);
+
+CREATE TABLE Pubblicazione(
+	Autore INT NOT NULL,
+    Libro BIGINT NOT NULL,
+    FOREIGN KEY(Autore) REFERENCES Autore(Codice),
+    FOREIGN KEY(Libro) REFERENCES Libro(CodiceISBN),
+    PRIMARY KEY(Autore, Libro)
+);
+
+CREATE TABLE Biblioteca(
+	Codice INT AUTO_INCREMENT,
+    Nome VARCHAR(80),
+	Citta VARCHAR(80),
+    Indirizzo VARCHAR(80),
+	Telefono LONG,
+	Account VARCHAR(20),
+	Valida BOOLEAN,
+	FOREIGN KEY(Account) REFERENCES Account(NomeUtente) ON UPDATE CASCADE,
+    PRIMARY KEY(Codice)
+);
+
+CREATE TABLE Copia(
+	ID INT NOT NULL,
+    Libro BIGINT NOT NULL,
+    Biblioteca INT NOT NULL,
+	DataAggiunta DATE,
+    FOREIGN KEY(Libro) REFERENCES Libro(CodiceISBN),
+    FOREIGN KEY(Biblioteca) REFERENCES Biblioteca(Codice),
+    PRIMARY KEY(ID, Libro, Biblioteca)
+);
+
+CREATE TABLE Utente(
+	ID INT AUTO_INCREMENT,
+    Nome VARCHAR(80),
+    Cognome VARCHAR(80),
+    Citta VARCHAR(50),
+    DataNascita DATE,
+    Telefono LONG,
+	Account VARCHAR(20),
+	FOREIGN KEY(Account) REFERENCES Account(NomeUtente) ON UPDATE CASCADE,
+    PRIMARY KEY(ID)
+);
+
+CREATE TABLE Prestito(
+	ID INT AUTO_INCREMENT,
+	DataRichiesta DATE,
+	DataMaxRitiro DATE NOT NULL,
+    DataRitiro DATE,
+    DataRiconsegnaPrevista DATE,
+    DataRiconsegnaEffettiva DATE,
+    Utente INT NOT NULL,
+	Copia INT NOT NULL,
+	Biblioteca INT NOT NULL,
+	Libro BIGINT NOT NULL,
+    FOREIGN KEY(Utente) REFERENCES Utente(ID),
+    PRIMARY KEY(ID)
+);
+
+
+CREATE TABLE Tessera(
+	Utente INT,
+	CodiceBarre BIGINT UNIQUE,
+    FOREIGN KEY(Utente) REFERENCES Utente(ID),
+	PRIMARY KEY(Utente)
+);
+
+CREATE TABLE Consegna(
+	Biblioteca INT,
+	Tessera INT,
+	DataMaxRitiro DATE,
+	DataRitiro DATE,
+	FOREIGN KEY(Biblioteca) REFERENCES Biblioteca(Codice),
+	FOREIGN KEY(Tessera) REFERENCES Tessera(Utente),
+	PRIMARY KEY(Biblioteca, Tessera)
+);
+
+CREATE TABLE Amministratore(
+	Codice INT AUTO_INCREMENT,
+    Account VARCHAR(20),
+	FOREIGN KEY(Account) REFERENCES Account(NomeUtente),
+    PRIMARY KEY(Codice)
+);
+
+INSERT INTO Account VALUES("administrator","password",CURRENT_TIMESTAMP);
+INSERT INTO Amministratore VALUES(1,"administrator");
+
+INSERT INTO Account VALUES("terranova","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("pippo","pippo",CURRENT_TIMESTAMP);
+INSERT INTO Utente VALUES(1,"Franco","Terranova","Pisa","2000-03-30",3404874928, "terranova");
+INSERT INTO Utente VALUES(2,"Pippo","Pippo","Pisa","1980-02-22",3404171922, "pippo");
+INSERT INTO Tessera VALUES(1,234909871212);
+INSERT INTO Tessera VALUES(2,234909872000);
+
+INSERT INTO Account VALUES("LaFenice","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("Piazzetta","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("BibliotecaVerde","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("onlybooks","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("bookforbook","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("Librone","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("BiblioPo","password",CURRENT_TIMESTAMP);
+INSERT INTO Account VALUES("Bibliotechiamoci","password",CURRENT_TIMESTAMP);
+INSERT INTO Biblioteca VALUES(1,"La Fenice","Pisa","Via degli Ontani 89",3492156450,"LaFenice",TRUE);
+INSERT INTO Biblioteca VALUES(2,"Piazzetta","Pisa","Via Verdi 1",3492221422,"Piazzetta",TRUE);
+INSERT INTO Biblioteca VALUES(3,"Biblioteca Verde","Livorno","Via Rossi 8",3492110422,"BibliotecaVerde",TRUE);
+INSERT INTO Biblioteca VALUES(4,"OnlyBooks","Firenze","Via Neri 8",3412111400,"onlybooks",TRUE);
+INSERT INTO Biblioteca VALUES(5,"BookForBook","Roma","Via Gialli ",3200111400,"bookforbook",TRUE);
+INSERT INTO Biblioteca VALUES(6,"Librone","Milano","Via Matto 1",3402011400,"Librone",TRUE);
+INSERT INTO Biblioteca VALUES(7,"BiblioPo","Torino","Vione Vannini 2",3402010400,"BiblioPo",TRUE);
+INSERT INTO Biblioteca VALUES(8,"Bibliotechiamoci","Pisa","Vione Volpe 1",3418110400,"Bibliotechiamoci",TRUE);
+
+INSERT INTO Consegna VALUES(1,1,CURRENT_DATE,CURRENT_DATE);
+INSERT INTO Consegna VALUES(1,2,CURRENT_DATE,CURRENT_DATE);
+
+INSERT INTO Libro VALUES(9788824731041,"I Promessi Sposi","Mondadori","Romanzo",2005,"Italiano",500);
+INSERT INTO Libro VALUES(9788883372902,"Senilita'","CrescereEdizioni","Romanzo",2000,"Italiano",500);
+INSERT INTO Libro VALUES(9788871527154,"Pensa e arricchisci te stesso","Gribaudi","Psicologia",1990,"Italiano",203);
+INSERT INTO Libro VALUES(9788817079761,"La Teoria del Tutto","Rizzoli","Scienza",2000,"Italiano",146);
+INSERT INTO Libro VALUES(9788860306418,"La realta' non e' come ci appare","Raffaello Cortini Editore","Scienza",2005,"Italiano",241);
+INSERT INTO Libro VALUES(9788845931925,"L'ordine del tempo","Piccola Biblioteca","Scienza",2005,"Italiano",211);
+INSERT INTO Libro VALUES(9788893191128,"Miracle Morning","Macro","Psicologia",2007,"Italiano",200);
+INSERT INTO Libro VALUES(9788845296086,"Come trattare gli altri e farseli amici","Bompiani","Psicologia",2004,"Italiano",270);
+INSERT INTO Libro VALUES(9788804662136,"Il trono di spade","Mondadori","Fantascienza",2000,"Italiano",420);
+INSERT INTO Libro VALUES(9788861752498,"Il Principe Felice e i migliori racconti","Joybook","Fantascienza",1990,"Italiano",132);
+INSERT INTO Libro VALUES(9788868367343,"Utente Sconosciuto","PickWick","Giallo",2002,"Italiano",362);
+
+INSERT INTO Autore VALUES(1,"Alessandro","Manzoni",1800,"Autore d'altri tempi");
+INSERT INTO Autore VALUES(2,"Italo","Svevo",1850,"Autore d'altri tempi");
+INSERT INTO Autore VALUES(3,"Napoleon","Hill",1960,"Il successo e' la chiave");
+INSERT INTO Autore VALUES(4,"Stephen W.","Hawking",1942,"Uno degli astrofisici piu' conosciuti al mondo");
+INSERT INTO Autore VALUES(5,"Carlo","Rovelli",1960,"Importante fisico");
+INSERT INTO Autore VALUES(6,"Hal","Elrod",1980,"Scrittore di rilievo");
+INSERT INTO Autore VALUES(7,"Dale","Carnegie",1980,"Scrittore di rilievo");
+INSERT INTO Autore VALUES(8,"Oscar","Wilde",1880,"Scrittore di rilievo");
+INSERT INTO Autore VALUES(9,"George R.R.","Martin",1950,"Scrittore di rilievo");
+INSERT INTO Autore VALUES(10,"Michael","Connelly",1970,"Scrittore di rilievo");
+
+INSERT INTO Pubblicazione VALUES(1,9788824731041);
+INSERT INTO Pubblicazione VALUES(2,9788883372902);
+INSERT INTO Pubblicazione VALUES(3,9788871527154);
+INSERT INTO Pubblicazione VALUES(4,9788817079761);
+INSERT INTO Pubblicazione VALUES(5,9788860306418);
+INSERT INTO Pubblicazione VALUES(5,9788845931925);
+INSERT INTO Pubblicazione VALUES(6,9788893191128);
+INSERT INTO Pubblicazione VALUES(7,9788845296086);
+INSERT INTO Pubblicazione VALUES(8,9788861752498);
+INSERT INTO Pubblicazione VALUES(9,9788804662136);
+INSERT INTO Pubblicazione VALUES(10,9788868367343);
+
+INSERT INTO Copia VALUES(1,9788824731041,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788883372902,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(2,9788883372902,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788871527154,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(2,9788871527154,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788868367343,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(3,9788871527154,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788861752498,2,CURRENT_DATE);
+INSERT INTO Copia VALUES(2,9788861752498,2,CURRENT_DATE);
+INSERT INTO Copia VALUES(3,9788861752498,2,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788817079761,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788860306418,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788845931925,2,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788893191128,2,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788804662136,2,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788845296086,1,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788845296086,2,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788860306418,3,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788824731041,3,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788883372902,3,CURRENT_DATE);
+INSERT INTO Copia VALUES(2,9788883372902,3,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788871527154,3,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788845931925,4,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788893191128,5,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788860306418,6,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788845931925,7,CURRENT_DATE);
+INSERT INTO Copia VALUES(1,9788893191128,6,CURRENT_DATE);
+
+INSERT INTO Prestito VALUES(1,"2019-12-01","2019-12-10","2019-12-09","2020-01-03","2020-01-03",1,1,1,9788883372902);
+
+SET GLOBAL event_scheduler = ON;
+
+
+/* EVENT ELIMINAZIONE CONSEGNE E PRESTITI QUANDO SUPERATA LA DATA DI MASSIMO RITIRO */
+
+DELIMITER $$
+CREATE EVENT IF NOT EXISTS AggiornaMaxRitiro
+ON SCHEDULE EVERY 1 DAY
+DO
+	BEGIN
+	DELETE FROM CONSEGNA
+	WHERE DATAMAXRITIRO = CURRENT_DATE-INTERVAL 1 DAY;
+	DELETE FROM PRESTITO
+	WHERE DATAMAXRITIRO = CURRENT_DATE-INTERVAL 1 DAY;
+	END $$
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
